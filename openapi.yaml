@@ -112,6 +112,10 @@ paths:
             application/json:
               schema:
                 type: object
+                properties:
+                  updatedRange:
+                    type: string
+                    description: The updated range in the spreadsheet
 
   /spreadsheets/1pp6OXMZ9QgpxhfT1NvZISTdJT8k9jfP6HlBPR9MM2YE/values/RAG_Results!A2:D4:
     get:
@@ -151,3 +155,4 @@ components:
           scopes:
             https://www.googleapis.com/auth/spreadsheets: Full access to spreadsheets
             https://www.googleapis.com/auth/spreadsheets.readonly: Read-only access to spreadsheets
+  schemas: {}
