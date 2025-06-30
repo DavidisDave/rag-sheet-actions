@@ -1,8 +1,9 @@
 openapi: 3.1.0
 info:
   title: Google Sheets RAG Integration
-  description: Interact with multiple Google Sheets to read knowledge base values and write RAG queries using OAuth2.
+  description: Interact with multiple Google Sheets to read knowledge base values and trigger RAG refreshes using OAuth2 and Web App integration.
   version: 1.0.0
+
 servers:
   - url: https://sheets.googleapis.com/v4
     description: Google Sheets API server
@@ -19,12 +20,12 @@ paths:
           description: A specific sheet range like "Contact!L2:L2" or "Category!D2:D2"
           schema:
             type: string
-          example: "Category!D2:D2"
+          example: Category!D2:D2
       security:
         - oauth2:
             - https://www.googleapis.com/auth/spreadsheets.readonly
       responses:
-        '200':
+        "200":
           description: Successfully retrieved data.
           content:
             application/json:
@@ -33,14 +34,12 @@ paths:
                 properties:
                   range:
                     type: string
-                    description: The requested range in the sheet.
                   values:
                     type: array
                     items:
                       type: array
                       items:
                         type: string
-                    description: The retrieved data.
 
   /spreadsheets/1H1srA0s9Z8U0ZBB6Wf6GIcLexG7j0ObLdvLxIdSMkk8/values:batchGet:
     get:
@@ -55,12 +54,15 @@ paths:
             type: array
             items:
               type: string
-          example: ["Category!C2:C75", "Contact!J2:K65", "Contact!A28:I39"]
+          example:
+            - Category!C2:C75
+            - Contact!J2:K65
+            - Contact!A28:I39
       security:
         - oauth2:
             - https://www.googleapis.com/auth/spreadsheets.readonly
       responses:
-        '200':
+        "200":
           description: Successfully retrieved data.
           content:
             application/json:
@@ -74,7 +76,6 @@ paths:
                       properties:
                         range:
                           type: string
-                          description: The requested range.
                         values:
                           type: array
                           items:
@@ -104,9 +105,10 @@ paths:
                     items:
                       type: string
               example:
-                values: [["Your query here"]]
+                values:
+                  - - How do I reset my Okta login?
       responses:
-        '200':
+        "200":
           description: Successfully wrote the query to the sheet
           content:
             application/json:
@@ -115,7 +117,6 @@ paths:
                 properties:
                   updatedRange:
                     type: string
-                    description: The updated range in the spreadsheet
 
   /spreadsheets/1pp6OXMZ9QgpxhfT1NvZISTdJT8k9jfP6HlBPR9MM2YE/values/RAG_Results!A2:D4:
     get:
@@ -126,7 +127,7 @@ paths:
         - oauth2:
             - https://www.googleapis.com/auth/spreadsheets.readonly
       responses:
-        '200':
+        "200":
           description: Successfully retrieved results from the sheet
           content:
             application/json:
@@ -144,6 +145,18 @@ paths:
                       items:
                         type: string
 
+  /external/rag-refresh:
+    get:
+      operationId: triggerRagRefresh
+      summary: Triggers the RAG App Script to process the most recent query
+      description: Calls the deployed Google Apps Script Web App to update top matching results after a query is written to RAG_Query!A2.
+      x-openai-isConsequential: false
+      x-openai-dataSources:
+        - url: https://script.google.com/macros/s/AKfycbzpIoJ93waJKeaLLKaWc1mRolMTtiXGVX_iGC63F-l4cZ8muKVdj7_agn3nY3KpqnK0/exec
+      responses:
+        "200":
+          description: Script executed successfully
+
 components:
   securitySchemes:
     oauth2:
@@ -155,7 +168,7 @@ components:
           scopes:
             https://www.googleapis.com/auth/spreadsheets: Full access to spreadsheets
             https://www.googleapis.com/auth/spreadsheets.readonly: Read-only access to spreadsheets
-  schemas: {}
+  schemas: {}  # ✅ This fixes the error
 
 security:
   - oauth2:
