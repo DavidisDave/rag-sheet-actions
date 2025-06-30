@@ -1,0 +1,74 @@
+openapi: 3.1.0
+info:
+  title: Google Sheets RAG Integration
+  description: Interact with a Google Sheet to write a query and read results using OAuth2.
+  version: 1.0.0
+servers:
+  - url: https://sheets.googleapis.com/v4
+    description: Google Sheets API server
+paths:
+  /spreadsheets/1pp6OXMZ9QgpxhfT1NvZISTdJT8k9jfP6HlBPR9MM2YE/values/RAG_Query!A2?valueInputOption=RAW:
+    put:
+      operationId: writeRagQuery
+      summary: Write a value to the RAG_Query!A2 cell
+      description: Writes a user-provided string into cell A2 of the RAG_Query sheet.
+      security:
+        - oauth2: [https://www.googleapis.com/auth/spreadsheets]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                values:
+                  type: array
+                  items:
+                    type: array
+                    items:
+                      type: string
+                  example: [["Your query here"]]
+      responses:
+        '200':
+          description: Successfully wrote the query to the sheet
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /spreadsheets/1pp6OXMZ9QgpxhfT1NvZISTdJT8k9jfP6HlBPR9MM2YE/values/RAG_Results!A2:D4:
+    get:
+      operationId: readRagResults
+      summary: Read results from the RAG_Results!A2:D4 range
+      description: Reads the values in cells A2 through D4 on the RAG_Results sheet.
+      security:
+        - oauth2: [https://www.googleapis.com/auth/spreadsheets.readonly]
+      responses:
+        '200':
+          description: Successfully retrieved results from the sheet
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  range:
+                    type: string
+                  majorDimension:
+                    type: string
+                  values:
+                    type: array
+                    items:
+                      type: array
+                      items:
+                        type: string
+components:
+  securitySchemes:
+    oauth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://accounts.google.com/o/oauth2/v2/auth
+          tokenUrl: https://oauth2.googleapis.com/token
+          scopes:
+            https://www.googleapis.com/auth/spreadsheets: Full access to spreadsheets
+            https://www.googleapis.com/auth/spreadsheets.readonly: Read-only access to spreadsheets
