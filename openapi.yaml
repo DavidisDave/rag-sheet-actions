@@ -156,3 +156,7 @@ components:
             https://www.googleapis.com/auth/spreadsheets: Full access to spreadsheets
             https://www.googleapis.com/auth/spreadsheets.readonly: Read-only access to spreadsheets
   schemas: {}
+
+security:
+  - oauth2:
+      - https://www.googleapis.com/auth/spreadsheets
