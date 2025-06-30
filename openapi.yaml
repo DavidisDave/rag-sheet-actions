@@ -1,19 +1,95 @@
 openapi: 3.1.0
 info:
   title: Google Sheets RAG Integration
-  description: Interact with a Google Sheet to write a query and read results using OAuth2.
+  description: Interact with multiple Google Sheets to read knowledge base values and write RAG queries using OAuth2.
   version: 1.0.0
 servers:
   - url: https://sheets.googleapis.com/v4
     description: Google Sheets API server
+
 paths:
+  /spreadsheets/1H1srA0s9Z8U0ZBB6Wf6GIcLexG7j0ObLdvLxIdSMkk8/values/{range}:
+    get:
+      operationId: getSpreadsheetValues
+      summary: Retrieve the last populated row or single range.
+      parameters:
+        - name: range
+          in: path
+          required: true
+          description: A specific sheet range like "Contact!L2:L2" or "Category!D2:D2"
+          schema:
+            type: string
+          example: "Category!D2:D2"
+      security:
+        - oauth2:
+            - https://www.googleapis.com/auth/spreadsheets.readonly
+      responses:
+        '200':
+          description: Successfully retrieved data.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  range:
+                    type: string
+                    description: The requested range in the sheet.
+                  values:
+                    type: array
+                    items:
+                      type: array
+                      items:
+                        type: string
+                    description: The retrieved data.
+
+  /spreadsheets/1H1srA0s9Z8U0ZBB6Wf6GIcLexG7j0ObLdvLxIdSMkk8/values:batchGet:
+    get:
+      operationId: batchGetCategoryOrContactRanges
+      summary: Retrieve row ranges for either article categories or contact info blocks.
+      parameters:
+        - name: ranges
+          in: query
+          required: true
+          description: Sheet ranges to retrieve, such as article index rows or country-specific contact ranges.
+          schema:
+            type: array
+            items:
+              type: string
+          example: ["Category!C2:C75", "Contact!J2:K65", "Contact!A28:I39"]
+      security:
+        - oauth2:
+            - https://www.googleapis.com/auth/spreadsheets.readonly
+      responses:
+        '200':
+          description: Successfully retrieved data.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valueRanges:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        range:
+                          type: string
+                          description: The requested range.
+                        values:
+                          type: array
+                          items:
+                            type: array
+                            items:
+                              type: string
+
   /spreadsheets/1pp6OXMZ9QgpxhfT1NvZISTdJT8k9jfP6HlBPR9MM2YE/values/RAG_Query!A2?valueInputOption=RAW:
     put:
       operationId: writeRagQuery
       summary: Write a value to the RAG_Query!A2 cell
       description: Writes a user-provided string into cell A2 of the RAG_Query sheet.
       security:
-        - oauth2: [https://www.googleapis.com/auth/spreadsheets]
+        - oauth2:
+            - https://www.googleapis.com/auth/spreadsheets
       requestBody:
         required: true
         content:
@@ -27,7 +103,8 @@ paths:
                     type: array
                     items:
                       type: string
-                  example: [["Your query here"]]
+              example:
+                values: [["Your query here"]]
       responses:
         '200':
           description: Successfully wrote the query to the sheet
@@ -42,7 +119,8 @@ paths:
       summary: Read results from the RAG_Results!A2:D4 range
       description: Reads the values in cells A2 through D4 on the RAG_Results sheet.
       security:
-        - oauth2: [https://www.googleapis.com/auth/spreadsheets.readonly]
+        - oauth2:
+            - https://www.googleapis.com/auth/spreadsheets.readonly
       responses:
         '200':
           description: Successfully retrieved results from the sheet
@@ -61,6 +139,7 @@ paths:
                       type: array
                       items:
                         type: string
+
 components:
   securitySchemes:
     oauth2:
